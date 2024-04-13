@@ -1,0 +1,17 @@
+# build Jenkins service from jenkins/jenkins:2.446 image and expose port 8080 and 50000
+services:
+  jenkins:
+    image: jenkins/jenkins:2.446
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - ./jenkins_home:/var/jenkins_home
+    networks:
+      - jenkins-net
+    restart: unless-stopped
+
+networks:
+  jenkins-net:
+    driver: bridge
