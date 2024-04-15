@@ -160,3 +160,6 @@ cython_debug/
 #.idea/
 
 jenkins_home/
+certs/
+
+.DS_Store

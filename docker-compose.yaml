@@ -1,16 +1,34 @@
-# build Jenkins service from jenkins/jenkins:2.446 image and expose port 8080 and 50000
+version: "3"
 services:
+  # build Jenkins service from jenkins/jenkins:2.446 image and expose port 8080 and 50000
   jenkins:
-    image: jenkins/jenkins:2.446
+    platform: linux/amd64
+    image: premdocker2022/jenkins:2.446
     container_name: jenkins
     ports:
-      - "8080:8080"
-      - "50000:50000"
+      - "8080:8080" # Jenkins server
+      - "50000:50000" # Jenkins agent
     volumes:
       - ./jenkins_home:/var/jenkins_home
+      - ./certs/jenkins:/certs/client:ro
     networks:
       - jenkins-net
-    restart: unless-stopped
+    environment:
+      - DOCKER_TLS_VERIFY=1 # enable TLS verification
+      - DOCKER_CERT_PATH=/certs/client # path to client certs
+      - DOCKER_HOST=tcp://docker:2376 # docker host
+    restart: on-failure
+  # build docker agent service using ubuntu:20.04 image and connect to jenkins-net network with necessary volumn mount to run docker commands
+  docker-agent:
+    image: premdocker2022/jenkins-agent-ubuntu-22.04-socat:1.0.0
+    container_name: docker-agent
+    ports:
+      - 2376:2375 # expose port 2376 to connect to docker host
+    networks:
+      - jenkins-net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # mount docker socket to run docker commands
+    restart: always
 
 networks:
   jenkins-net:
